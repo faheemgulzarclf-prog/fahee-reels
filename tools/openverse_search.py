@@ -7,8 +7,8 @@ line in ATTRIBUTION.md (paste the credit into the caption when the license
 is not CC0 / PDM).
 
 Examples:
-  python3 openverse_search.py audio "cinematic boom" -n 5 --download
-  python3 openverse_search.py audio "clock ticking" --max-sec 10 --download
+  python3 openverse_search.py audio "cinematic boom" --category sfx -n 5 --download
+  python3 openverse_search.py audio "clock ticking" --category sfx --max-sec 10 --download
   python3 openverse_search.py image "stock market screen" --orientation tall --download
   python3 openverse_search.py image "trader desk" --cc0      # no credit needed
 
@@ -32,7 +32,7 @@ def _req(url, data=None, headers=None):
     h.update(headers or {})
     if data is not None:
         data = urllib.parse.urlencode(data).encode()
-    with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=30) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=120) as r:
         return json.load(r)
 
 
@@ -55,7 +55,7 @@ def register(name, email):
 
 
 def search(kind, query, n=10, cc0=False, orientation=None, max_sec=None, category=None, page=1):
-    params = {"q": query, "page_size": min(max(n * 2 if max_sec else n, 1), 20), "page": page}
+    params = {"q": query, "page_size": min(max(20 if max_sec else n, 1), 20), "page": page}
     if cc0:
         params["license"] = "cc0,pdm"
     else:
@@ -64,10 +64,11 @@ def search(kind, query, n=10, cc0=False, orientation=None, max_sec=None, categor
         if orientation:
             params["aspect_ratio"] = orientation  # tall | wide | square
     elif kind == "audio":
-        if category:
-            params["category"] = category  # sound_effect | music | ...
-        if max_sec:
-            params["length"] = "shortest" if max_sec <= 30 else "short"
+        # Freesound items carry no category tag, so "sfx" filters by source instead
+        if category == "sfx":
+            params["source"] = "freesound"
+        elif category:
+            params["category"] = category  # music | podcast | ...
     path = "images" if kind == "image" else "audio"
     data = _req(f"{API}/{path}/?{urllib.parse.urlencode(params)}", headers=_token())
     results = data.get("results", [])
@@ -110,7 +111,7 @@ def main():
     p.add_argument("--page", type=int, default=1)
     p.add_argument("--cc0", action="store_true", help="only CC0 / public domain (no credit needed)")
     p.add_argument("--orientation", choices=["tall", "wide", "square"])
-    p.add_argument("--category", help="audio: sound_effect, music, podcast...")
+    p.add_argument("--category", help="audio: sfx (Freesound sound effects), music, podcast...")
     p.add_argument("--max-sec", type=float, help="audio: max duration in seconds")
     p.add_argument("--download", action="store_true")
     p.add_argument("--out", default="openverse_media")
