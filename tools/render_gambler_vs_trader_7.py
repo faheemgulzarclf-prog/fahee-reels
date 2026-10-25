@@ -529,20 +529,26 @@ def endcard(img, t):
     m = Image.new('L', band.size, 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, 839, 169], 26, fill=255); band.putalpha(m)
     img.alpha_composite(band, (120, y0)); return True
 
-def coldopen(img, t):   # black open on the starting balance, splits open on 'two very different plans'
+def coldopen(img, t):   # black open: the -8% loss lands before anything else, then splits open
     if t > CEND + .45: return
     lay = Image.new('RGBA', (W, H), INK + (255,)); d = ImageDraw.Draw(lay, 'RGBA')
-    d.rounded_rectangle([360, 560, 720, 614], 27, fill=RED); d.text((540, 587), 'MARKET CLOSED', font=F(900, 30), fill=WHITE, anchor='mm')
-    pk = A(0, .14); pul = 1 + .12 * (1 - ease((t - pk) / .3)) if t > pk else 1 + .3 * (1 - back(t / .35))
-    d.text((540, 800), '48 HRS', font=F(900, int(220 * pul)), fill=WHITE, anchor='mm')
-    lw = 520 * ease((t - .2) / .6); d.rectangle([540 - lw / 2, 948, 540 + lw / 2, 956], fill=GOLD)
-    if t < pk: words = [('EPISODE', GOLD), ('7', GOLD)]; w0 = .05
-    else: words = [("IT'S", WHITE), ('FRIDAY', WHITE), ('NIGHT.', GOLD)]; w0 = pk
-    f2 = F(900, 66); tw = sum(d.textlength(w + ' ', font=f2) for w, c in words) - d.textlength(' ', font=f2); x = 540 - tw / 2
-    for i, (w, c) in enumerate(words):
-        q = ease((t - w0 - i * .09) / .25)
-        if q > 0: d.text((x, 1080 + 30 * (1 - q)), w, font=f2, fill=c + (int(255 * q),), anchor='lm')
-        x += d.textlength(w + ' ', font=f2)
+    q0 = ease((t - .05) / .3); f0 = F(900, 34); lab = 'EPISODE 7  ·  FRIDAY NIGHT'; lw0 = d.textlength(lab, font=f0)
+    d.rounded_rectangle([540 - lw0 / 2 - 30, 520, 540 + lw0 / 2 + 30, 580], 30, fill=GOLD + (int(255 * q0),))
+    d.text((540, 551), lab, font=f0, fill=INK + (int(255 * q0),), anchor='mm')
+    c = ease((t - .25) / 1.1); v = 1 + 7 * c; pk = .25 + 1.1
+    pul = 1 + .14 * (1 - ease((t - pk) / .3)) if t > pk else 1 + .25 * (1 - back(min(1, t / .35)))
+    d.text((540, 790), f'-{v:.0f}%' if c < 1 else '-8%', font=F(900, int(250 * pul)), fill=RED, anchor='mm')
+    lw = 520 * ease((t - .3) / .6); d.rectangle([540 - lw / 2, 948, 540 + lw / 2, 956], fill=GOLD)
+    p2 = A(0, .54)
+    if t < p2: rows = [[('WHILE', WHITE), ('HE', WHITE), ('WAS', WHITE)], [('ASLEEP.', GOLD)]]; w0 = A(0, .3)
+    else: rows = [[('ZERO', RED), ('BUTTONS', WHITE)], [('TOUCHED.', WHITE)]]; w0 = p2
+    f2 = F(900, 76); n = 0
+    for ri, row in enumerate(rows):
+        tw = sum(d.textlength(w + ' ', font=f2) for w, c_ in row) - d.textlength(' ', font=f2); x = 540 - tw / 2
+        for w, col in row:
+            q = ease((t - w0 - n * .1) / .22); n += 1
+            if q > 0: d.text((x, 1060 + ri * 96 + 30 * (1 - q)), w, font=f2, fill=col + (int(255 * q),), anchor='lm')
+            x += d.textlength(w + ' ', font=f2)
     sp = ease((t - CEND) / .45)
     if sp <= 0: img.alpha_composite(lay); return
     off = int(sp * H / 2 + 4)
@@ -557,7 +563,7 @@ def logo(img):
 
 
 def hit_list():
-    return [(.05, 1.0), (A(0, .14), .8), (A(0, .45), 1.0), (TT[1] - .12, .9), (G(2, .3), .9), (T(2, .3), .5),
+    return [(.05, 1.0), (1.35, .9), (A(0, .54), .9), (A(0, .8), 1.0), (TT[1] - .12, .9), (G(2, .3), .9), (T(2, .3), .5),
             (TT[3] - .12, 1.0), (G(4, .3), .6), (T(4, .4), .5), (TT[5] - .12, 1.0), (G(6, .2), .9), (KEY, 1.2),
             (T(6, .25), .5), (TT[7] - .12, 1.0), (G(8, 0), 1.1), (G(8, .35), .8), (T(8, 0), .6), (T(8, .45), .6),
             (TT[9] - .12, 1.0), (A(9, .5), .9), (A(9, .82), 1.1), (TT[10] - .12, 1.0), (TT[10] + .13, .7), (A(10, .3), .8)]
@@ -700,7 +706,7 @@ def audio():
     with wave.open('gvt7_audio.wav', 'wb') as w:
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((m * 32767).astype(np.int16).tobytes())
 
-KEY = G(6, .55); TL = build_tl(); HITS = hit_list(); MAXT = KEY; CEND = A(0, .45)
+KEY = G(6, .55); TL = build_tl(); HITS = hit_list(); MAXT = KEY; CEND = A(0, .8)
 SHADOW = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 for x0, x1 in PX: SHADOW.paste((40, 30, 20, 60), (x0 + 10, PY0 + 18, x1 + 10, PY1 + 18))
 SHADOW = SHADOW.filter(ImageFilter.GaussianBlur(16))

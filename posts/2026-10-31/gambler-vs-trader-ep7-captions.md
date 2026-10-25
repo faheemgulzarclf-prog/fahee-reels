@@ -2,8 +2,8 @@
 
 ## Instagram (@fahee_mtrades)
 ```
-He lost 8% while he was asleep. 😴
-Gary held his trades over the weekend. Monday gapped 200 pips and skipped his stop.
+He lost 8% in his sleep. His stop loss never fired. 😴
+Gary held over the weekend. Monday opened 200 pips against him.
 
 Your stop loss doesn't work when the market is closed. Your rules do.
 
@@ -15,8 +15,8 @@ Send this to the friend who holds over the weekend. Follow @fahee_mtrades for th
 
 ## TikTok (@faheemriskmanager)
 ```
-He lost money without touching a single button 😬
-Friday: Gary holds. Tariq closes everything. Monday: 200 pip gap.
+-8% and he never clicked a single button 😳
+Friday he held. Monday the market gapped 200 pips past his stop.
 
 The market can't hurt you when you're flat.
 
